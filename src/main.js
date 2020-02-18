@@ -1,32 +1,17 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import App from './App.vue'
-import Page from './pages/Page.vue'
+import Vue from 'vue';
 
-Vue.use(VueRouter)
+import App from './App.vue';
+import { autoRegister } from './helpers/component-ref';
+import router from './router';
 
-const Home = { template: '<div><h2>Home Page</h2></div>' }
-const About = { template: '<div><h2>About Page</h2></div>' }
-const Contact = { template: '<div><h2>Contact Page</h2></div>' }
-
-const routes = [
-  { path: '/', component: Home },
-  { path: '/about', component: About },
-  { path: '/contact', component: Contact },
-  { path: '/page', component: Page },
-]
-
-const router = new VueRouter({
-  routes,
-  mode: 'history'
-})
+autoRegister(require.context('./components', true, /[A-Z]\w+\.vue$/));
 
 new Vue({
   el: '#app',
   router,
-  render: h => h(App),
   mounted() {
     // You'll need this for renderAfterDocumentEvent.
-    document.dispatchEvent(new Event('render-event'))
-  }
-})
+    document.dispatchEvent(new Event('render-event'));
+  },
+  render: h => h(App),
+});
