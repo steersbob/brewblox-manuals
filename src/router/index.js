@@ -1,15 +1,9 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import PageIndex from './components/PageIndex.vue';
-import pages from './pages/__menu';
+import routes from './routes';
 
 Vue.use(VueRouter);
-
-const routes = [
-  { path: '/', component: PageIndex },
-  ...pages,
-];
 
 const router = new VueRouter({
   routes,

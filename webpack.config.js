@@ -4,6 +4,9 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 const PrerenderSPAPlugin = require('prerender-spa-plugin');
 const Renderer = PrerenderSPAPlugin.PuppeteerRenderer;
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const menu = require('./src/menu');
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
   mode: process.env.NODE_ENV,
@@ -53,12 +56,36 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.md$/,
+        use: [
+          {
+            loader: 'vue-loader',
+            options: {
+              productionMode: isProduction,
+              compilerOptions: {
+                preserveWhitespace: false,
+              },
+              transformAssetUrls: {
+                video: 'src',
+                source: 'src',
+                img: 'src',
+                image: 'xlink:href',
+              },
+            },
+          },
+          {
+            loader: require.resolve('./build/md-loader'),
+          },
+        ],
+      },
     ],
   },
   resolve: {
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
     },
+    modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   devServer: {
     historyApiFallback: true,
@@ -69,9 +96,10 @@ module.exports = {
     new VueLoaderPlugin(),
   ],
 };
-if (process.env.NODE_ENV === 'production') {
+
+if (isProduction) {
   module.exports.devtool = '#source-map';
-  module.exports.plugins = (module.exports.plugins || []).concat([
+  module.exports.plugins.push(
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"',
@@ -85,7 +113,7 @@ if (process.env.NODE_ENV === 'production') {
     }),
     new PrerenderSPAPlugin({
       staticDir: path.join(__dirname, 'dist'),
-      routes: ['/', '/about', '/contact'],
+      routes: ['/', ...menu.map(page => '/' + page.path)],
 
       renderer: new Renderer({
         inject: {
@@ -95,10 +123,10 @@ if (process.env.NODE_ENV === 'production') {
         renderAfterDocumentEvent: 'render-event',
       }),
     }),
-  ]);
-} else {
-  // NODE_ENV === 'development'
-  module.exports.plugins = (module.exports.plugins || []).concat([
+  );
+}
+else { // NODE_ENV === 'development'
+  module.exports.plugins.push(
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"development"',
@@ -110,5 +138,5 @@ if (process.env.NODE_ENV === 'production') {
       filename: 'index.html',
       favicon: 'favicon.ico',
     }),
-  ]);
+  );
 }
